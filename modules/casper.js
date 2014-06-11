@@ -28,7 +28,7 @@
  *
  */
 
-/*global CasperError, console, exports, phantom, __utils__, patchRequire, require:true*/
+/*global CasperError, console, exports, phantom, _remote, patchRequire, require:true*/
 
 var require = patchRequire(require);
 var colorizer = require('colorizer');
@@ -282,7 +282,7 @@ Casper.prototype.callUtils = function callUtils(method) {
     "use strict";
     var args = [].slice.call(arguments, 1);
     var result = this.evaluate(function(method, args) {
-        return __utils__.__call(method, args);
+        return _remote.__call(method, args);
     }, method, args);
     if (utils.isObject(result) && result.__isCallError) {
         throw new CasperError(f("callUtils(%s) with args %s thrown an error: %s",
@@ -460,7 +460,7 @@ Casper.prototype.click = function click(selector) {
     var success = this.mouseEvent('mousedown', selector) && this.mouseEvent('mouseup', selector);
     success = success && this.mouseEvent('click', selector);
     this.evaluate(function(selector) {
-        var element = __utils__.findOne(selector);
+        var element = _remote.findOne(selector);
         if (element) {
             element.focus();
         }
@@ -790,7 +790,7 @@ Casper.prototype.fillForm = function fillForm(selector, vals, options) {
 
     var fillResults = this.evaluate(function _evaluate(selector, vals, selectorType) {
         try {
-            return __utils__.fill(selector, vals, selectorType);
+            return _remote.fill(selector, vals, selectorType);
         } catch (exception) {
             return {exception: exception.toString()};
         }
@@ -831,14 +831,14 @@ Casper.prototype.fillForm = function fillForm(selector, vals, options) {
     // Form submission?
     if (submit) {
         this.evaluate(function _evaluate(selector) {
-            var form = __utils__.findOne(selector);
+            var form = _remote.findOne(selector);
             var method = (form.getAttribute('method') || "GET").toUpperCase();
             var action = form.getAttribute('action') || "unknown";
-            __utils__.log('submitting form to ' + action + ', HTTP ' + method, 'info');
+            _remote.log('submitting form to ' + action + ', HTTP ' + method, 'info');
             var event = document.createEvent('Event');
             event.initEvent('submit', true, true);
             if (!form.dispatchEvent(event)) {
-                __utils__.log('unable to submit form', 'warning');
+                _remote.log('unable to submit form', 'warning');
                 return;
             }
             if (typeof form.submit === "function") {
@@ -982,7 +982,7 @@ Casper.prototype.getElementAttr = function getElementAttr(selector, attribute) {
     "use strict";
     this.checkStarted();
     return this.evaluate(function _evaluate(selector, attribute) {
-        return __utils__.findOne(selector).getAttribute(attribute);
+        return _remote.findOne(selector).getAttribute(attribute);
     }, selector, attribute);
 };
 
@@ -999,7 +999,7 @@ Casper.prototype.getElementsAttr = function getElementsAttr(selector, attribute)
     "use strict";
     this.checkStarted();
     return this.evaluate(function _evaluate(selector, attribute) {
-        return [].map.call(__utils__.findAll(selector), function(element) {
+        return [].map.call(_remote.findAll(selector), function(element) {
             return element.getAttribute(attribute);
         });
     }, selector, attribute);
@@ -1118,7 +1118,7 @@ Casper.prototype.getGlobal = function getGlobal(name) {
             result.value = JSON.stringify(window[name]);
         } catch (e) {
             var message = "Unable to JSON encode window." + name + ": " + e;
-            __utils__.log(message, "error");
+            _remote.log(message, "error");
             result.error = message;
         }
         return result;
@@ -1150,7 +1150,7 @@ Casper.prototype.getHTML = function getHTML(selector, outer) {
         throw new CasperError("No element matching selector found: " + selector);
     }
     return this.evaluate(function getSelectorHTML(selector, outer) {
-        var element = __utils__.findOne(selector);
+        var element = _remote.findOne(selector);
         return outer ? element.outerHTML : element.innerHTML;
     }, selector, !!outer);
 };
@@ -1250,7 +1250,7 @@ Casper.prototype.injectClientUtils = function injectClientUtils() {
     "use strict";
     this.checkStarted();
     var clientUtilsInjected = this.page.evaluate(function() {
-        return typeof __utils__ === "object";
+        return typeof _remote === "object";
     });
     if (true === clientUtilsInjected) {
         return;
@@ -1265,7 +1265,7 @@ Casper.prototype.injectClientUtils = function injectClientUtils() {
     // These are not the lines I'm the most proud of in my life, but it works.
     /*global __options*/
     this.page.evaluate(function() {
-        window.__utils__ = new window.ClientUtils(__options);
+        window._remote = new window.ClientUtils(__options);
     }.toString().replace('__options', JSON.stringify(this.options)));
 };
 
@@ -1605,7 +1605,7 @@ Casper.prototype.sendKeys = function(selector, keys, options) {
     }
     if (options.reset) {
         this.evaluate(function(selector) {
-            __utils__.setField(__utils__.findOne(selector), '');
+            _remote.setField(_remote.findOne(selector), '');
         }, selector);
         this.click(selector);
     }
@@ -1615,7 +1615,7 @@ Casper.prototype.sendKeys = function(selector, keys, options) {
     if (isTextInput && !options.keepFocus) {
         // remove the focus
         this.evaluate(function(selector) {
-            __utils__.findOne(selector).blur();
+            _remote.findOne(selector).blur();
         }, selector);
     }
     return this;

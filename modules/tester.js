@@ -28,7 +28,7 @@
  *
  */
 
-/*global CasperError, exports, phantom, __utils__, patchRequire, require:true*/
+/*global CasperError, exports, phantom, _remote, patchRequire, require:true*/
 
 var require = patchRequire(require);
 var fs = require('fs');
@@ -381,7 +381,7 @@ Tester.prototype.assertElementCount = function assertElementCount(selector, coun
     }
     var elementCount = this.casper.evaluate(function(selector) {
         try {
-            return __utils__.findAll(selector).length;
+            return _remote.findAll(selector).length;
         } catch (e) {
             return -1;
         }
@@ -511,7 +511,7 @@ Tester.prototype.assertField = function assertField(input, expected, message, op
     }
 
     var actual = this.casper.evaluate(function(inputName, options) {
-        return __utils__.getFieldValue(inputName, options);
+        return _remote.getFieldValue(inputName, options);
     }, input, options);
 
     return baseFieldAssert.call(this, input, expected, actual, message);
@@ -528,7 +528,7 @@ Tester.prototype.assertField = function assertField(input, expected, message, op
 Tester.prototype.assertFieldCSS = function assertFieldCSS(cssSelector, expected, message) {
     "use strict";
     var actual = this.casper.evaluate(function(inputName, cssSelector) {
-        return __utils__.getFieldValue(inputName, {inputSelector: cssSelector});
+        return _remote.getFieldValue(inputName, {inputSelector: cssSelector});
     }, null, cssSelector);
 
     return baseFieldAssert.call(this, null, expected, actual, message);
@@ -545,7 +545,7 @@ Tester.prototype.assertFieldCSS = function assertFieldCSS(cssSelector, expected,
 Tester.prototype.assertFieldXPath = function assertFieldXPath(xPathSelector, expected, message) {
     "use strict";
     var actual = this.casper.evaluate(function(inputName, xPathSelector) {
-        return __utils__.getFieldValue(inputName, {inputXPath: xPathSelector});
+        return _remote.getFieldValue(inputName, {inputXPath: xPathSelector});
     }, null, xPathSelector);
 
     return baseFieldAssert.call(this, null, expected, actual, message);
